@@ -3,6 +3,11 @@
 # Using the excellent resource https://www.ibm.com/developerworks/aix/library/au-aix-nim-cheat-sheet/index.html
 # for layout and initial setup of NIM master
 
+# Requirements
+# The system being backed up must be an existing NIM client.
+# The backup should be called with the NIM machine name
+# Depending on space, there should be at most two mksysb/spot resources for each system at any given time.
+# Errors should be promoted to alerts.
 
 
 DATE=$(date +%m'-'%d'-'%Y)
@@ -21,8 +26,8 @@ typeset -A NIM_OSVER_LIST=$(echo "${NIM_OSVERS}")
 #   None
 # Returns:
 #   Array nim_vg_info
-#       vginfo[vgname].pp_size
-#       vginfo[vgname].pp_free
+#       nim_vg_info[NIM_VG].pp_size
+#       nim_vg_info[NIM_VG].pp_free
 ##################################################
 vginfo()
 {
@@ -35,4 +40,3 @@ vginfo()
             )
 }
 
-vginfo
