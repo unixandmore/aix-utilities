@@ -1,0 +1,38 @@
+#!/usr/bin/ksh93
+
+# Using the excellent resource https://www.ibm.com/developerworks/aix/library/au-aix-nim-cheat-sheet/index.html
+# for layout and initial setup of NIM master
+
+
+
+DATE=$(date +%m'-'%d'-'%Y)
+NIM_VG=${NIM_VG:-nimvg}
+NIM_BASE=${NIM_BASE:-/nim}
+NIM_SPOT=${NIM_SPOT:-${NIM_BASE}/spot}
+NIM_OSVERS=${NIM_OSVERS:-"7100 7200"}
+typeset -A NIM_OSVER_LIST=$(echo "${NIM_OSVERS}")
+
+
+##################################################
+# Initialize NIM volume group information
+# Globals:
+#   NIM_VG
+# Arguments:
+#   None
+# Returns:
+#   Array nim_vg_info
+#       vginfo[vgname].pp_size
+#       vginfo[vgname].pp_free
+##################################################
+vginfo()
+{
+    set -x
+    typeset -A vginfo
+    pp_size=$(lsvg ${NIM_VG} | grep "PP SIZE" | awk 'BEGIN{FS=":"} {print$3}' | awk 'BEGIN{FS=" "} {print $1}')
+    pp_free=$(lsvg ${NIM_VG} | grep "FREE PP" | awk 'BEGIN{FS=":"} {print $3}'| awk 'BEGIN{FS=" "} {print $1}')
+    vginfo+=(
+                ["${NIM_VG}"]=(pp_size="${pp_size}" pp_free="${pp_free}")
+            )
+}
+
+vginfo
