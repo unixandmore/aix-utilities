@@ -31,7 +31,6 @@ typeset -A NIM_OSVER_LIST=$(echo "${NIM_OSVERS}")
 ##################################################
 vginfo()
 {
-    set -x
     typeset -A vginfo
     pp_size=$(lsvg ${NIM_VG} | grep "PP SIZE" | awk 'BEGIN{FS=":"} {print$3}' | awk 'BEGIN{FS=" "} {print $1}')
     pp_free=$(lsvg ${NIM_VG} | grep "FREE PP" | awk 'BEGIN{FS=":"} {print $3}'| awk 'BEGIN{FS=" "} {print $1}')
@@ -40,3 +39,49 @@ vginfo()
             )
 }
 
+function NIM_EPOCH.get
+{
+	.sh.value=$(date +%s)
+}
+
+#print $NIM_EPOCH
+
+#NIM_CLIENT
+#
+# nim -o define -t mksysb -a server=master -a location=/nim/mksysb/
+
+function nimsysb 
+{
+  typeset TRUE="1"
+  typeset FALSE="0"
+  typeset NIM_CLIENT=""
+  typeset LIST_MKSYSB="${FALSE}"
+  typeset VERSION="1.0"
+
+  while getopts ":c:ldv" OPTION
+  do
+  	case "${OPTION}" in
+  		'c') NIM_CLIENT="${OPTARG}";;
+  		'l') LIST_MKSYSB="${TRUE}";;
+  		'd') DEBUG="${TRUE}";;
+  		'v') VERBOSE="${TRUE}";;
+  		'?') usage "${0}" && return 1;;
+  		':') usage "${0}" && return 1;;
+  	esac
+  done
+
+  #trap "usage ${0}" EXIT
+  #if [[ "_${NIM_CLIENT}" = "_" ]]
+  #then
+	  #print -u 2 "ERROR: Must specify the NIM client name"
+	  #return 2
+  #fi
+
+  (( DEBUG == TRUE )) && set -x
+  (( VERBOSE == TRUE )) && print -u 2 "#Program:..........: ${0}"
+  (( VERBOSE == TRUE )) && print -u 2 "#Version:..........: ${VERSION}"
+  (( VERBOSE == TRUE )) && print -u 2 "#NIM_CLIENT:.......: ${NIM_CLIENT}"
+
+}
+
+nimsysb "${@}"
