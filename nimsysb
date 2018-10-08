@@ -9,11 +9,12 @@
 # Depending on space, there should be at most two mksysb/spot resources for each system at any given time.
 # Errors should be promoted to alerts.
 
-
-DATE=$(date +%m'-'%d'-'%Y)
+DATE=$(date +%m%d%Y)
+NIM="/usr/sbin/nim"
 NIM_VG=${NIM_VG:-nimvg}
 NIM_BASE=${NIM_BASE:-/nim}
 NIM_SPOT=${NIM_SPOT:-${NIM_BASE}/spot}
+NIM_MKSYSB_DIR=${NIM_MKSYSB_DIR:-${NIM_BASE}/mksysb}
 NIM_OSVERS=${NIM_OSVERS:-"7100 7200"}
 typeset -A NIM_OSVER_LIST=$(echo "${NIM_OSVERS}")
 
@@ -39,18 +40,40 @@ vginfo()
             )
 }
 
+usage()
+{
+	print -u 2 "${0} -c"
+}
+
+
+
 function NIM_EPOCH.get
 {
 	.sh.value=$(date +%s)
 }
 
-#print $NIM_EPOCH
+nimsysb()
+{
+  set -x
+  typeset CLIENT_MKSYSB_NAME="${NIM_CLIENT}_mk_${DATE}"
+  typeset CLIENT_SPOT_NAME="${NIM_CLIENT}_sp_${DATE}"
 
-#NIM_CLIENT
-#
-# nim -o define -t mksysb -a server=master -a location=/nim/mksysb/
+  print -u 2 "Creating a new mksysb for client: ${NIM_CLIENT}"
+  typeset -i NIMSYSB_RC=0
+  NIMSYSB_OUT=$(exec ${NIM} -o define -t mksysb -a server=master -a location=${NIM_MKSYSB_DIR}/${CLIENT_MKSYSB_NAME} -a mk_image=yes -a mksysb_flags=Te -a source=${NIM_CLIENT} -a comments=${NIM_EPOCH} ${CLIENT_MKSYSB_NAME})
 
-function nimsysb 
+  NIMSYSB_RC=$(echo $?)
+
+  if [[ ${NIMSYSB_RC} -eq 0 ]]
+  then
+	  print -u 2 "Successfully created the mksysb"
+  else
+	  print -u 2 "Error creating the mksysb"
+  fi
+
+}
+
+main() 
 {
   typeset TRUE="1"
   typeset FALSE="0"
@@ -70,12 +93,15 @@ function nimsysb
   	esac
   done
 
-  #trap "usage ${0}" EXIT
-  #if [[ "_${NIM_CLIENT}" = "_" ]]
-  #then
-	  #print -u 2 "ERROR: Must specify the NIM client name"
-	  #return 2
-  #fi
+  trap "usage ${0}" EXIT
+  if [[ "_${NIM_CLIENT}" = "_" ]]
+  then
+	  print -u 2 "ERROR: Must specify the NIM client name"
+	  return 2
+  fi
+
+  nimsysb
+  
 
   (( DEBUG == TRUE )) && set -x
   (( VERBOSE == TRUE )) && print -u 2 "#Program:..........: ${0}"
@@ -84,4 +110,4 @@ function nimsysb
 
 }
 
-nimsysb "${@}"
+main "${@}"
