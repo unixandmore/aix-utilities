@@ -9,7 +9,8 @@
 # Depending on space, there should be at most two mksysb/spot resources for each system at any given time.
 # Errors should be promoted to alerts.
 
-DATE=$(date +%m%d%Y)
+DATE="$(date '+%Y.%m%d_%a')"
+#DATE=$(date +%m%d%Y)
 NIM="/usr/sbin/nim"
 NIM_VG=${NIM_VG:-nimvg}
 NIM_BASE=${NIM_BASE:-/nim}
@@ -60,7 +61,7 @@ nimsysb()
 
   print -u 2 "Creating a new mksysb for client: ${NIM_CLIENT}"
   typeset -i NIMSYSB_RC=0
-  NIMSYSB_OUT=$(exec ${NIM} -o define -t mksysb -a server=master -a location=${NIM_MKSYSB_DIR}/${CLIENT_MKSYSB_NAME} -a mk_image=yes -a mksysb_flags=Te -a source=${NIM_CLIENT} -a comments=${NIM_EPOCH} ${CLIENT_MKSYSB_NAME})
+  NIMSYSB_OUT=$(exec ${NIM} -o define -t mksysb -a server=master -a location=${NIM_MKSYSB_DIR}/${CLIENT_MKSYSB_NAME} -a mk_image=yes -a mksysb_flags=Te -a source=${NIM_CLIENT} ${CLIENT_MKSYSB_NAME})
 
   NIMSYSB_RC=$(echo $?)
 
@@ -100,7 +101,7 @@ main()
 	  return 2
   fi
 
-  nimsysb
+  print "${NIM_CLIENT}_mk_${DATE}"
   
 
   (( DEBUG == TRUE )) && set -x
