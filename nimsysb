@@ -10,7 +10,6 @@
 # Errors should be promoted to alerts.
 
 DATE="$(date '+%Y_%m%d_%a')"
-#DATE=$(date +%m%d%Y)
 NIM="/usr/sbin/nim"
 NIM_SERVER="${NIM_SERVER:-master}"
 NIM_VG=${NIM_VG:-nimvg}
@@ -57,12 +56,6 @@ function NIM_EPOCH.get
 nimsysb()
 {
 
-  print -u 2 "Creating a new mksysb for client: ${NIM_CLIENT}"
-  typeset -i NIMSYSB_RC=0
-  NIM_COMMAND="${NIM} -o define -t mksysb -a server=${NIM_SERVER} -a location=${NIM_MKSYSB_DIR}/${CLIENT_MKSYSB_NAME} -a mk_image=yes -a mksysb_flags=Te -a source=${NIM_CLIENT} ${CLIENT_MKSYSB_NAME}"
-  #print "${NIM_COMMAND}"
-  NIMSYSB_OUT=$(${NIM} -o define -t mksysb -a server=master -a location=${NIM_MKSYSB_DIR}/${CLIENT_MKSYSB_NAME} -a mk_image=yes -a mksysb_flags=Te -a source=${NIM_CLIENT} ${CLIENT_MKSYSB_NAME})
-  NIMSYSB_RC=$?
 
   if [[ ${NIMSYSB_RC} -eq 0 ]]
   then
@@ -81,15 +74,12 @@ main()
   typeset LIST_MKSYSB="${FALSE}"
   typeset VERSION="1.0"
 
-  while getopts ":c:ldv" OPTION
+  while getopts ":c:d:" OPTION
   do
   	case "${OPTION}" in
   		'c') NIM_CLIENT="${OPTARG}";;
-  		'l') LIST_MKSYSB="${TRUE}";;
-  		'd') DEBUG="${TRUE}";;
-  		'v') VERBOSE="${TRUE}";;
+  		'd') VDEV="${OPTARG}";;
   		'?') usage "${0}" && return 1;;
-  		':') usage "${0}" && return 1;;
   	esac
   done
 
@@ -101,8 +91,23 @@ main()
   else
 	typeset CLIENT_MKSYSB_NAME="${NIM_CLIENT}_mk_${DATE}"
 	typeset CLIENT_SPOT_NAME="${NIM_CLIENT}_sp_${DATE}"
-	nimsysb
   fi
+
+
+  if [[ -z "${VDEV}" ]]
+  then
+      print -u 2 "Error: Must specify the mount path for the nas_filer name"
+      return 2
+  else
+      typeset CLIENT_MKSYSB_LOCATION="${VDEV}/${CLIENT_MKSYSB_NAME}"
+  fi
+
+  print -u 2 "Creating a new mksysb for client: ${NIM_CLIENT}"
+  typeset -i NIMSYSB_RC=0
+  NIM_COMMAND="${NIM} -o define -t mksysb -a server=${NIM_SERVER} -a location=${CLIENT_MKSYSB_LOCATION} -a mk_image=yes -a mksysb_flags=Te -a source=${NIM_CLIENT} ${CLIENT_MKSYSB_NAME}"
+  print "${NIM_COMMAND}"
+  #NIMSYSB_OUT=$(${NIM} -o define -t mksysb -a server=master -a location=${NIM_MKSYSB_DIR}/${CLIENT_MKSYSB_NAME} -a mk_image=yes -a mksysb_flags=Te -a source=${NIM_CLIENT} ${CLIENT_MKSYSB_NAME})
+  #NIMSYSB_RC=$?
 }
 
 main "${@}"
