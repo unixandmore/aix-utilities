@@ -3,6 +3,7 @@
 # -*- coding: utf-8 -*-
 
 from pprint import pprint
+import argparse
 import re
 import traceback
 import os
@@ -66,6 +67,30 @@ class NimSYSB(object):
             output = process.stdout.readline().decode('utf-8').strip()
             if output:
                 print('{}'.format(output.strip()))
+    
+    def getargs():
+        parser = argparse.ArgumentParser()
+        parser.add_argument('-c','--client',
+                            action='store',
+                            required=True,
+                            dest='client',
+                            help='Client name as stored on the NIM server')
+        parser.add_argument('-n','--nas',
+                            action='store',
+                            required=True,
+                            dest='server',
+                            help='Specify the name of the nas_filer object in the NIM server, or master for other operations')
+        parser.add_argument('--vfs',
+                            action='store',
+                            required=True,
+                            dest='vfs',
+                            help='The Virtual File System path on the NAS device')
+        args = parser.parse_args()
+        return args
+
 
 nimsysb = NimSYSB(nas_filer='netapp_8040', nas_filer_dir='/vol_advnim_mksysb')
 nimsysb.list_systems()
+if __name__ == '__main__':
+    args = getargs()
+
